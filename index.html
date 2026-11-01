@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#fbf5f2">
+<title>Achu × Shaluttan — Tic-Tac-Toe</title>
+<style>
+:root{--bg:#fbf6f3;--card:#fffdfb;--ink:#51464a;--muted:#9b898d;--rose:#c58d99;--rose2:#f3e3e5;--lav:#9b91b6;--line:#eee2df;--shadow:0 18px 50px #72545a12}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 10% 0%,#f7e9e9 0,transparent 35%),var(--bg);color:var(--ink);font-family:ui-rounded,"SF Pro Rounded",system-ui,-apple-system,Segoe UI,sans-serif;min-height:100vh;display:flex;justify-content:center;padding:24px 14px 40px}
+main{width:min(100%,480px)}.brand{text-align:center;margin:12px 0 22px}.eyebrow{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted)}h1{font-family:Georgia,serif;font-weight:400;font-size:clamp(32px,8vw,43px);letter-spacing:-.04em;margin:8px 0 5px;color:#9f737d}h1 span{color:#b8a9c9;font-style:italic}.sub{font-family:Georgia,serif;font-style:italic;color:#a99497;font-size:15px}
+.panel{background:var(--card);border:1px solid #f0e5e2;border-radius:24px;padding:20px;box-shadow:var(--shadow);margin:14px 0}.players{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px}.player{text-align:center;padding:12px 8px;border-radius:16px;background:#fcf5f3}.player:last-child{background:#f6f3fa}.player small{display:block;color:var(--muted);font-size:11px;letter-spacing:.08em;text-transform:uppercase}.player strong{display:block;font-size:16px;margin-top:4px}.symbol{font-family:Georgia,serif;font-size:29px;color:var(--rose);line-height:1.2}.player:last-child .symbol{color:var(--lav)}.versus{font-family:Georgia,serif;color:#c3afb1;font-style:italic}
+.status{text-align:center;min-height:26px;margin:16px 0 12px;color:#8f777e;font-size:14px}.board{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:350px;margin:0 auto}.cell{aspect-ratio:1;border:1px solid var(--line);border-radius:18px;background:#fcf8f6;color:var(--rose);font-family:Georgia,serif;font-size:clamp(42px,13vw,64px);cursor:pointer;transition:transform .15s,background .15s;display:grid;place-items:center}.cell:nth-child(3n+2){background:#faf8fb}.cell.o{color:var(--lav)}.cell:disabled{cursor:default}.cell:not(:disabled):active{transform:scale(.96)}.actions{display:flex;gap:9px;margin-top:17px}.btn{border:0;border-radius:14px;padding:13px 15px;font:600 14px inherit;cursor:pointer;flex:1;background:var(--rose);color:white;box-shadow:0 7px 18px #c58d9928}.btn.secondary{background:#f5ecea;color:#8d7278;box-shadow:none}.btn:disabled{opacity:.45;cursor:not-allowed}
+label{display:block;font-size:12px;color:var(--muted);margin:12px 0 6px}input{width:100%;border:1px solid var(--line);border-radius:13px;padding:13px 14px;background:#fffdfc;color:var(--ink);font:inherit;outline:none}input:focus{border-color:#c99aa3} .row{display:flex;gap:9px}.row>*{min-width:0}.row input{flex:1}.tiny{font-size:12px;color:var(--muted);line-height:1.55}.hidden{display:none!important}.roomline{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#faf4f2;border-radius:14px;padding:11px 13px;margin-top:13px}.roomcode{font-weight:700;letter-spacing:.18em;font-size:18px;color:#9f737d}.linkbtn{border:0;background:none;color:#9b7780;font-weight:600;cursor:pointer}.notice{font-size:12px;line-height:1.5;color:#a18c90;margin-top:12px}.divider{height:1px;background:var(--line);margin:17px 0}.score{display:flex;justify-content:center;gap:22px;font-size:12px;color:var(--muted);margin-top:14px}.score b{color:var(--ink)}footer{text-align:center;color:#b09b9e;font:italic 13px Georgia,serif;margin:22px 0 0}
+</style>
+</head>
+<body>
+<main>
+<header class="brand"><div class="eyebrow">a little game for two hearts</div><h1>achu <span>×</span> shaluttan</h1><div class="sub">no distance, just one little game ♡</div></header>
+<section class="panel">
+ <div class="players">
+  <div class="player"><small>Player X</small><strong>Achu</strong><div class="symbol">×</div></div>
+  <div class="versus">vs</div>
+  <div class="player"><small>Player O</small><strong>Shaluttan</strong><div class="symbol">○</div></div>
+ </div>
+ <div id="status" class="status">Connect together to start playing ♡</div>
+ <div id="board" class="board" aria-label="Tic tac toe board"></div>
+ <div class="score"><span>Achu wins <b id="xWins">0</b></span><span>Draws <b id="draws">0</b></span><span>Shaluttan wins <b id="oWins">0</b></span></div>
+ <div class="actions"><button id="reset" class="btn secondary">New round</button><button id="copyInvite" class="btn" disabled>Copy invite</button></div>
+ <div id="roomLine" class="roomline hidden"><div><div class="tiny">YOUR ROOM CODE</div><div id="roomCode" class="roomcode">------</div></div><button id="copyCode" class="linkbtn">Copy code</button></div>
+</section>
+<section class="panel" id="connectPanel">
+ <div style="font-family:Georgia,serif;font-size:20px">Play from two phones</div>
+ <p class="tiny">Achu creates a room and shares the code. Shaluttan joins from her phone. Moves sync live.</p>
+ <button id="create" class="btn" style="width:100%">Create a room</button>
+ <div class="divider"></div>
+ <label for="joinCode">Have a room code?</label>
+ <div class="row"><input id="joinCode" maxlength="6" placeholder="Enter 6-digit code" inputmode="numeric"><button id="join" class="btn">Join</button></div>
+ <div class="notice" id="connectionNote">First, connect your free Firebase project below. The game itself is free to host as a static website.</div>
+</section>
+<section class="panel" id="setupPanel">
+ <details>
+  <summary style="cursor:pointer;font-weight:600;color:#8f747b">One-time setup: connect the online game</summary>
+  <p class="tiny">This is needed so both phones share the same board. Create a Firebase project, enable Anonymous sign-in and Realtime Database, then paste your web app config here. Instructions are included in the download's README text below.</p>
+  <label>Firebase web config (paste the full config object)</label>
+  <textarea id="firebaseConfig" rows="6" style="width:100%;border:1px solid var(--line);border-radius:12px;padding:12px;font:12px ui-monospace,monospace" placeholder='{"apiKey":"...","authDomain":"...","databaseURL":"https://YOUR-PROJECT-default-rtdb.firebaseio.com","projectId":"...","appId":"..."}'></textarea>
+  <div class="actions"><button id="saveConfig" class="btn">Connect Firebase</button><button id="clearConfig" class="btn secondary">Clear</button></div>
+  <div id="firebaseStatus" class="notice">Not connected yet.</div>
+ </details>
+</section>
+<footer>made with a little love, just for you two ♡</footer>
+</main>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+let auth=null,db=null,user=null,roomId=null,roomRef=null,roomData=null,unsubscribe=null;
+let localMode=false;
+const wins=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+let scores={x:0,o:0,d:0};
+function setStatus(s){$('status').textContent=s}
+function render(){
+ const b=$('board');b.innerHTML='';
+ const cells=roomData?.board||Array(9).fill('');
+ const turn=roomData?.turn||'x',over=!!roomData?.winner||!!roomData?.draw;
+ cells.forEach((v,i)=>{const el=document.createElement('button');el.className='cell '+(v==='o'?'o':'');el.textContent=v==='x'?'×':v==='o'?'○':'';el.setAttribute('aria-label',`Square ${i+1} ${v||'empty'}`);el.disabled=!roomData||over||!!v||!isMyTurn();el.onclick=()=>play(i);b.appendChild(el)});
+ $('xWins').textContent=scores.x;$('oWins').textContent=scores.o;$('draws').textContent=scores.d;
+ if(!roomData){setStatus('Connect together to start playing ♡');return}
+ if(roomData.winner){setStatus(roomData.winner==='x'?'Achu wins this round! ♡':'Shaluttan wins this round! ♡')}
+ else if(roomData.draw){setStatus("It's a draw. One more round? ♡")}
+ else if(!roomData.players?.o){setStatus('Waiting for Shaluttan to join…')}
+ else setStatus((turn==='x'?'Achu':'Shaluttan')+'’s turn '+(isMyTurn()?'— your move ♡':'— waiting for their move'));
+ $('copyInvite').disabled=!roomId;
+}
+function isMyTurn(){if(localMode)return true;const mark=roomData?.players?.x===user?.uid?'x':roomData?.players?.o===user?.uid?'o':null;return !!mark&&roomData?.turn===mark}
+function result(board){for(const line of wins){const [a,b,c]=line;if(board[a]&&board[a]===board[b]&&board[a]===board[c])return board[a]}return null}
+function updateScore(d){if(d?.winner)scores[d.winner]++;else if(d?.draw)scores.d++;render()}
+async function play(i){
+ if(!roomData||roomData.board[i]||roomData.winner||roomData.draw||(!localMode&&!isMyTurn()))return;
+ const board=[...roomData.board];board[i]=roomData.turn;const winner=result(board),draw=!winner&&board.every(Boolean);
+ const next={...roomData,board,turn:roomData.turn==='x'?'o':'x',winner:winner||null,draw};
+ if(localMode){roomData=next;if(winner||draw)updateScore(next);else render();return}
+ try{await roomRef.transaction(current=>{if(!current||current.board[i]||current.winner||current.draw||current.turn!==roomData.turn)return;const b=[...current.board];b[i]=current.turn;const w=result(b),d=!w&&b.every(Boolean);return {...current,board:b,turn:current.turn==='x'?'o':'x',winner:w||null,draw:d}})}catch(e){setStatus('Could not send move. Check your connection.')}
+}
+function freshRoom(xUid,oUid=null){return {board:Array(9).fill(''),turn:'x',winner:null,draw:false,players:{x:xUid,o:oUid},createdAt:Date.now()}}
+async function connect(config){
+ try{
+  if(!firebase.apps.length)firebase.initializeApp(config);
+  auth=firebase.auth();db=firebase.database();await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);const cred=await auth.signInAnonymously();user=cred.user;
+  $('firebaseStatus').textContent='Connected! You can create or join a room on this phone.';
+  $('connectionNote').textContent='Connected. Create a room or enter the code Shaluttan shares with you.';
+  $('create').disabled=false;$('join').disabled=false;
+ }catch(e){$('firebaseStatus').textContent='Connection error: '+e.message;$('connectionNote').textContent='Check your Firebase config and setup steps.'}
+}
+$('saveConfig').onclick=async()=>{try{const c=JSON.parse($('firebaseConfig').value);localStorage.setItem('coupleFirebaseConfig',JSON.stringify(c));await connect(c)}catch(e){$('firebaseStatus').textContent='Please paste a valid Firebase config JSON.'}};
+$('clearConfig').onclick=()=>{localStorage.removeItem('coupleFirebaseConfig');$('firebaseConfig').value='';$('firebaseStatus').textContent='Config cleared.'};
+$('create').onclick=async()=>{
+ if(!db||!user){setStatus('Connect Firebase first using the setup section below.');return}
+ const code=String(Math.floor(100000+Math.random()*900000));roomId=code;roomRef=db.ref('rooms/'+code);
+ try{await roomRef.set(freshRoom(user.uid));listen();$('roomCode').textContent=code;$('roomLine').classList.remove('hidden');setStatus('Room created! Send the code to Shaluttan ♡')}catch(e){setStatus('Could not create room: '+e.message)}
+};
+$('join').onclick=async()=>{
+ if(!db||!user){setStatus('Connect Firebase first using the setup section below.');return}
+ const code=$('joinCode').value.trim();if(!/^\d{6}$/.test(code)){setStatus('Enter a valid 6-digit room code.');return}
+ const ref=db.ref('rooms/'+code);
+ try{const snap=await ref.get();if(!snap.exists()){setStatus('Room not found. Check the code with Achu.');return}
+ const tx=await ref.transaction(d=>{if(!d||d.players?.o)return;d.players.o=user.uid;return d});
+ if(!tx.committed){setStatus('This room is full or no longer available.');return}
+ roomId=code;roomRef=ref;$('roomCode').textContent=code;$('roomLine').classList.remove('hidden');listen();setStatus('You joined! Let the battle begin ♡')
+ }catch(e){setStatus('Could not join: '+e.message)}
+};
+function listen(){if(unsubscribe)roomRef.off('value',unsubscribe);unsubscribe=snap=>{const old=roomData;roomData=snap.val();if(old&&roomData&&(roomData.winner&&!old.winner||roomData.draw&&!old.draw))updateScore(roomData);else render();$('copyInvite').disabled=false};roomRef.on('value',unsubscribe)}
+$('reset').onclick=async()=>{
+ if(!roomData)return;
+ const reset={...roomData,board:Array(9).fill(''),turn:'x',winner:null,draw:false};
+ if(localMode){roomData=reset;render();return}
+ try{await roomRef.update({board:reset.board,turn:'x',winner:null,draw:false})}catch(e){setStatus('Could not start a new round.')}
+};
+async function copy(text){try{await navigator.clipboard.writeText(text);setStatus('Copied! Send it to your favourite person ♡')}catch(e){setStatus('Copy unavailable — please copy it manually.')}}
+$('copyCode').onclick=()=>copy(roomId||'');
+$('copyInvite').onclick=()=>copy(location.href+(location.search?'&':'?')+'room='+roomId);
+// Firebase project configuration: embedded so both phones connect automatically.
+const defaultFirebaseConfig={
+ apiKey:"AIzaSyAOrrDCRlf-vGr5W6VXHrxg0wi_Lr5tTSQ",
+ authDomain:"tic-tac-8d2a2.firebaseapp.com",
+ databaseURL:"https://tic-tac-8d2a2-default-rtdb.asia-southeast1.firebasedatabase.app",
+ projectId:"tic-tac-8d2a2",
+ storageBucket:"tic-tac-8d2a2.firebasestorage.app",
+ messagingSenderId:"350052506667",
+ appId:"1:350052506667:web:56ce0072815e01eb1c1e6e",
+ measurementId:"G-MC2HPC7HR8"
+};
+$('firebaseConfig').value=JSON.stringify(defaultFirebaseConfig,null,2);
+connect(defaultFirebaseConfig);
+const params=new URLSearchParams(location.search);if(params.get('room'))$('joinCode').value=params.get('room');
+$('create').disabled=true;$('join').disabled=true;
+render();
+</script>
+</body></html>
