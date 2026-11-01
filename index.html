@@ -118,27 +118,30 @@ $('join').onclick=async()=>{
     const snap=await ref.get();
     debugLog('Room lookup result',{exists:snap.exists(),data:snap.val()});
     if(!snap.exists()){setStatus('Room not found. Check the 6-digit code.');return}
-    debugLog('Starting Player O transaction');
-    const tx=await ref.transaction(d=>{
-      if(!d)return;
-      d.players=d.players||{};
-      if(d.players.o && d.players.o!==user.uid)return;
-      if(d.players.x===user.uid)return d;
-      d.players.o=user.uid;
-      return d;
+    debugLog('Starting Player O slot transaction');
+    // Claim only the empty players/o slot. A transaction on the whole room
+    // can abort immediately when its first local value is null.
+    const playerORef=ref.child('players/o');
+    const tx=await playerORef.transaction(current=>{
+      if(current===null || current===undefined) return user.uid;
+      if(current===user.uid) return current;
+      return; // another player already owns O
     });
-    debugLog('Transaction result',{committed:tx.committed,data:tx.snapshot.val()});
-    if(!tx.committed){
-      const latest=tx.snapshot.val();
-      if(latest?.players?.o===user.uid){
-        // This phone had already joined this room.
-      }else if(latest?.players?.o){
+    debugLog('Player O transaction result',{committed:tx.committed,value:tx.snapshot.val()});
+    if(!tx.committed && tx.snapshot.val()!==user.uid){
+      if(tx.snapshot.val()){
         setStatus('This room already has a Player O. Create a new room or use an empty room.');
-        return;
       }else{
-        setStatus('Firebase did not accept the join. Check the Realtime Database Rules and try again.');
-        return;
+        setStatus('Could not claim Player O. Check the debug log for Firebase permission errors.');
       }
+      return;
+    }
+    // Confirm the full room now contains this phone as Player O.
+    const verify=await ref.get();
+    debugLog('Verifying joined room',verify.val());
+    if(verify.val()?.players?.o!==user.uid){
+      setStatus('Player O registration could not be verified. See diagnostics.');
+      return;
     }
     roomId=code;roomRef=ref;
     $('roomCode').textContent=code;
