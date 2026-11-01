@@ -103,7 +103,7 @@ $('create').onclick=async()=>{
 $('join').onclick=async()=>{
   if(!db||!user){setStatus('Firebase is not connected on this phone. Refresh and try again.');return}
   const code=$('joinCode').value.trim();
-  if(!/^\\d{6}$/.test(code)){setStatus('Enter a valid 6-digit room code.');return}
+  if(!/^\d{6}$/.test(code)){setStatus('Enter a valid 6-digit room code.');return}
   const ref=db.ref('rooms/'+code);
   $('join').disabled=true;
   setStatus('Checking room and joining…');
