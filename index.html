@@ -101,14 +101,46 @@ $('create').onclick=async()=>{
  try{await roomRef.set(freshRoom(user.uid));listen();$('roomCode').textContent=code;$('roomLine').classList.remove('hidden');setStatus('Room created! Send the code to Shaluttan ♡')}catch(e){setStatus('Could not create room: '+e.message)}
 };
 $('join').onclick=async()=>{
- if(!db||!user){setStatus('Connect Firebase first using the setup section below.');return}
- const code=$('joinCode').value.trim();if(!/^\d{6}$/.test(code)){setStatus('Enter a valid 6-digit room code.');return}
- const ref=db.ref('rooms/'+code);
- try{const snap=await ref.get();if(!snap.exists()){setStatus('Room not found. Check the code with Achu.');return}
- const tx=await ref.transaction(d=>{if(!d||d.players?.o)return;d.players.o=user.uid;return d});
- if(!tx.committed){setStatus('This room is full or no longer available.');return}
- roomId=code;roomRef=ref;$('roomCode').textContent=code;$('roomLine').classList.remove('hidden');listen();setStatus('You joined! Let the battle begin ♡')
- }catch(e){setStatus('Could not join: '+e.message)}
+  if(!db||!user){setStatus('Firebase is not connected on this phone. Refresh and try again.');return}
+  const code=$('joinCode').value.trim();
+  if(!/^\\d{6}$/.test(code)){setStatus('Enter a valid 6-digit room code.');return}
+  const ref=db.ref('rooms/'+code);
+  $('join').disabled=true;
+  setStatus('Checking room and joining…');
+  try{
+    const snap=await ref.get();
+    if(!snap.exists()){setStatus('Room not found. Check the 6-digit code.');return}
+    const tx=await ref.transaction(d=>{
+      if(!d)return;
+      d.players=d.players||{};
+      if(d.players.o && d.players.o!==user.uid)return;
+      if(d.players.x===user.uid)return d;
+      d.players.o=user.uid;
+      return d;
+    });
+    if(!tx.committed){
+      const latest=tx.snapshot.val();
+      if(latest?.players?.o===user.uid){
+        // This phone had already joined this room.
+      }else if(latest?.players?.o){
+        setStatus('This room already has a Player O. Create a new room or use an empty room.');
+        return;
+      }else{
+        setStatus('Firebase did not accept the join. Check the Realtime Database Rules and try again.');
+        return;
+      }
+    }
+    roomId=code;roomRef=ref;
+    $('roomCode').textContent=code;
+    $('roomLine').classList.remove('hidden');
+    listen();
+    setStatus('Joined successfully! Waiting for the first move ♡');
+  }catch(e){
+    console.error('Join failed:',e);
+    setStatus('Join failed ('+(e.code||'error')+'): '+e.message);
+  }finally{
+    $('join').disabled=false;
+  }
 };
 function listen(){if(unsubscribe)roomRef.off('value',unsubscribe);unsubscribe=snap=>{const old=roomData;roomData=snap.val();if(old&&roomData&&(roomData.winner&&!old.winner||roomData.draw&&!old.draw))updateScore(roomData);else render();$('copyInvite').disabled=false};roomRef.on('value',unsubscribe)}
 $('reset').onclick=async()=>{
